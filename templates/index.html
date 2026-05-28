@@ -1,1 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HDFC Policy Dashboard</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body { background-color: #f8f9fa; }
+        .card { border-radius: 15px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        #jsonOutput { background-color: #272822; color: #f8f8f2; padding: 15px; border-radius: 8px; max-height: 500px; overflow-y: auto; }
+    </style>
+</head>
+<body>
 
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card p-4">
+                <h3 class="text-center mb-4">🛡️ Policy Data Retriever</h3>
+                
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label class="form-label">Environment</label>
+                        <select id="env" class="form-select">
+                            <option value="hdfc_policy_prod">Prod (Standard)</option>
+                            <option value="hdfc_policy_prod_new">Prod (New)</option>
+                        </select>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Action</label>
+                        <select id="action" class="form-select">
+                            <option value="get-optimized-result">Optimized Result</option>
+                            <option value="get-contact-details">Contact Details</option>
+                        </select>
+                    </div>
+                    <div class="col-12">
+                        <label class="form-label">Policy ID</label>
+                        <input type="text" id="policy_id" class="form-control" placeholder="Enter Policy ID (e.g. 26657955)">
+                    </div>
+                    <div class="col-12">
+                        <button onclick="fetchData()" id="btnFetch" class="btn btn-primary w-100">Execute Request</button>
+                    </div>
+                </div>
+
+                <div class="mt-4">
+                    <h6>Response:</h6>
+                    <pre id="jsonOutput">Waiting for request...</pre>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    async function fetchData() {
+        const btn = document.getElementById('btnFetch');
+        const output = document.getElementById('jsonOutput');
+        
+        const payload = {
+            env: document.getElementById('env').value,
+            action: document.getElementById('action').value,
+            policy_id: document.getElementById('policy_id').value
+        };
+
+        if(!payload.policy_id) {
+            alert("Please enter a Policy ID");
+            return;
+        }
+
+        btn.disabled = true;
+        btn.innerText = "Loading...";
+        output.innerText = "Fetching data...";
+
+        try {
+            const response = await fetch('/api/fetch-policy', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+            const data = await response.json();
+            output.innerText = JSON.stringify(data, null, 4);
+        } catch (error) {
+            output.innerText = "Error: " + error;
+        } finally {
+            btn.disabled = false;
+            btn.innerText = "Execute Request";
+        }
+    }
+</script>
+
+</body>
+</html>
